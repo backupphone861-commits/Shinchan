@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SHINCHAN — Full Flashy Discord Bot</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --primary-red: #ff1450;
+      --neon-red: #ff3b6f;
+      --deep-black: #070707;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Rajdhani',sans-serif;background:#000;color:#fff;overflow-x:hidden;cursor:none;}
+
+    /* Cursor */
+    .custom-cursor{position:fixed;width:28px;height:28px;border:2px solid var(--neon-red);border-radius:50%;pointer-events:none;z-index:9999;transition:all .08s;backdrop-filter:blur(4px);}
+    .custom-cursor.hover{transform:scale(1.5);background:rgba(255,59,111,.12);}
+
+    /* Glass cards */
+    .glass-card{background:rgba(20,20,20,0.45);border:1px solid rgba(255,59,111,.3);backdrop-filter:blur(10px);border-radius:16px;padding:1.5rem;transition:.3s}
+    .glass-card:hover{transform:translateY(-10px);border-color:var(--neon-red);}
+
+    .neon-text{color:transparent;background:linear-gradient(90deg,var(--neon-red),var(--primary-red));-webkit-background-clip:text;background-clip:text;text-shadow:0 0 12px rgba(255,59,111,.6)}
+
+    .btn-3d{background:linear-gradient(45deg,#ff274a,#ff3b6f);padding:1rem 1.6rem;border-radius:12px;font-weight:700;box-shadow:0 8px 20px rgba(255,59,111,.3);transition:.25s}
+    .btn-3d:hover{transform:translateY(-6px) scale(1.05)}
+
+    /* Matrix Rain */
+    #matrixCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.15;}
+    /* Particles */
+    #particlesCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+  </style>
+</head>
+<body>
+  <canvas id="particlesCanvas"></canvas>
+  <canvas id="matrixCanvas"></canvas>
+  <div class="custom-cursor" id="cursor"></div>
+
+  <section style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2;text-align:center;padding:2rem;">
+    <h1 class="neon-text" style="font-size:3.5rem;font-family:'Orbitron',monospace">SHINCHAN</h1>
+    <h2 id="typing" style="margin-top:1rem;font-size:1.4rem;color:#ffccd5;font-family:'Rajdhani',sans-serif;"></h2>
+    <div style="margin-top:2rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;">
+      <a href="https://discord.com/oauth2/authorize?client_id=1414628300986515558&scope=bot%20applications.commands&permissions=8" target="_blank" class="btn-3d"><i class="fas fa-rocket"></i> Invite SHINCHAN</a>
+      <a href="https://discord.gg/ZvY4YnG8kW" target="_blank" class="btn-3d" style="background:linear-gradient(45deg,#ff9aa2,#ff3b6f)"><i class="fas fa-headset"></i> Support Server</a>
+    </div>
+  </section>
+
+  <section style="max-width:1100px;margin:0 auto;padding:4rem 1rem;z-index:2;position:relative;">
+    <h2 class="neon-text" style="text-align:center;font-size:2.5rem;margin-bottom:2rem;">Features</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.2rem;">
+      <div class="glass-card"><h3>AI Moderation</h3><p>Smart filters and automation keep your server safe.</p></div>
+      <div class="glass-card"><h3>Music & Media</h3><p>Crystal clear audio, queues, and autoplay support.</p></div>
+      <div class="glass-card"><h3>Custom Commands</h3><p>Flexible command builder for your community.</p></div>
+      <div class="glass-card"><h3>Analytics</h3><p>Get stats and logs to track growth.</p></div>
+    </div>
+  </section>
+
+  <footer style="text-align:center;padding:1.5rem;background:rgba(0,0,0,.5);z-index:2;position:relative;">
+    <p>© <span id="year"></span> SHINCHAN. All rights reserved.</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Typing effect
+    const phrases = ["Smart Moderation","Music","Fun","AI Tools"];
+    let i=0,j=0,current="",isDeleting=false;
+    function type(){
+      if(i>=phrases.length) i=0;
+      current = phrases[i];
+      document.getElementById("typing").textContent = current.substring(0,j);
+      if(!isDeleting){ if(j<current.length){ j++; } else{ isDeleting=true; setTimeout(type,1000); return; } }
+      else{ if(j>0){ j--; } else{ isDeleting=false; i++; } }
+      setTimeout(type,isDeleting?60:120);
+    }
+    type();
+
+    // Custom cursor
+    const cursor=document.getElementById("cursor");
+    document.addEventListener("mousemove",e=>{cursor.style.left=e.clientX-14+"px";cursor.style.top=e.clientY-14+"px";});
+    document.querySelectorAll("a,button,.glass-card").forEach(el=>{
+      el.addEventListener("mouseenter",()=>cursor.classList.add("hover"));
+      el.addEventListener("mouseleave",()=>cursor.classList.remove("hover"));
+    });
+
+    // Particles
+    const pCanvas=document.getElementById("particlesCanvas"),pCtx=pCanvas.getContext("2d");
+    let particles=[];
+    function resize(){pCanvas.width=window.innerWidth;pCanvas.height=window.innerHeight;}
+    window.addEventListener("resize",resize);resize();
+    for(let i=0;i<80;i++){particles.push({x:Math.random()*pCanvas.width,y:Math.random()*pCanvas.height,vx:(Math.random()-0.5),vy:(Math.random()-0.5),r:Math.random()*3+1});}
+    function drawParticles(){
+      pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
+      pCtx.fillStyle="rgba(255,59,111,0.7)";
+      particles.forEach(p=>{
+        p.x+=p.vx;p.y+=p.vy;
+        if(p.x<0||p.x>pCanvas.width) p.vx*=-1;
+        if(p.y<0||p.y>pCanvas.height) p.vy*=-1;
+        pCtx.beginPath();pCtx.arc(p.x,p.y,p.r,0,Math.PI*2);pCtx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    // Matrix Rain
+    const mCanvas=document.getElementById("matrixCanvas"),mCtx=mCanvas.getContext("2d");
+    function resizeM(){mCanvas.width=window.innerWidth;mCanvas.height=window.innerHeight;}
+    window.addEventListener("resize",resizeM);resizeM();
+    const letters="01";
+    const fontSize=14;const columns=mCanvas.width/fontSize;let drops=[];
+    for(let x=0;x<columns;x++) drops[x]=1;
+    function drawMatrix(){
+      mCtx.fillStyle="rgba(0,0,0,0.05)";
+      mCtx.fillRect(0,0,mCanvas.width,mCanvas.height);
+      mCtx.fillStyle="#ff3b6f";mCtx.font=fontSize+"px monospace";
+      for(let i=0;i<drops.length;i++){
+        let text=letters.charAt(Math.floor(Math.random()*letters.length));
+        mCtx.fillText(text,i*fontSize,drops[i]*fontSize);
+        if(drops[i]*fontSize>mCanvas.height && Math.random()>0.975) drops[i]=0;
+        drops[i]++;
+      }
+      requestAnimationFrame(drawMatrix);
+    }
+    drawMatrix();
+  </script>
+</body>
+</html>
